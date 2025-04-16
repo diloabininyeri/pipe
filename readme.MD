@@ -21,9 +21,10 @@ A flexible, lightweight middleware pipeline system for PHP. Inspired by Laravel-
 
 No package manager needed. Just include the class in your project:
 
+```
 ```php
 use Zeus\Pipe\Pipe;
-```
+
 
 ---
 
