@@ -1,0 +1,21 @@
+{
+  "name": "zeus/pipe",
+  "type": "library",
+  "description": "A simple, flexible middleware pipeline system for PHP with named stages, conditional execution, and error handling.",
+  "keywords": ["pipeline", "middleware", "php", "data processing", "functional"],
+  "homepage": "https://github.com/berxudar/zeus-pipe",
+  "authors": [
+    {
+      "name": "Dilo Surucu (Abdulkadir)",
+      "email": "berxudar@gmail.com",
+      "role": "Developer"
+    }
+  ],
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Zeus\\Pipe\\": "src/"
+    }
+  }
+}
