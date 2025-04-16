@@ -1,25 +1,29 @@
-## Pipe 
-### A lightweight middleware pipeline for PHP
-```markdown
+
 # Zeus\Pipe
 
-A flexible, lightweight middleware pipeline system for PHP. Inspired by Laravel-style middleware, `Zeus\Pipe` allows you to process data through a series of named middleware functions with conditional execution, exception handling, and flow control.
+A lightweight, flexible middleware pipeline system for PHP, inspired by Laravel's middleware architecture. `Zeus\Pipe` enables you to process data through a series of named middleware functions with features like conditional execution, exception handling, and flow control.
 
 ## Features
 
-- ✅ Named middleware registration  
-- 🔁 Conditional execution with `only()` and `without()`  
-- 🛑 Flow control with `stop()`  
-- 🧩 Exception handling via `catch()`  
-- 👀 Middleware monitoring via `watch()`  
-- 🧼 Easily flush all middleware with `flush()`  
-- 🔄 Retrieve pipeline as a closure with `getClosure()`
+- **Named Middleware**: Register middleware with unique names for easy management.
+- **Conditional Execution**: Use `only()` and `without()` to control which middleware runs.
+- **Flow Control**: Stop middleware execution with `stop()`.
+- **Exception Handling**: Catch and handle errors with `catch()`.
+- **Middleware Monitoring**: Track middleware execution with `watch()`.
+- **Pipeline Reset**: Clear all middleware with `flush()`.
+- **Closure Support**: Convert the pipeline to a reusable closure with `getClosure()`.
 
 ---
 
 ## Installation
 
-No package manager needed. Just include the class in your project:
+Install via Composer:
+
+```bash
+composer require zeus/pipe
+```
+
+Alternatively, include it manually:
 
 ```php
 use Zeus\Pipe\Pipe;
@@ -27,110 +31,127 @@ use Zeus\Pipe\Pipe;
 
 ---
 
-## Basic Usage
+## Usage
+
+### Basic Example
+
+Create a pipeline and add middleware to process data sequentially:
 
 ```php
+use Zeus\Pipe\Pipe;
+
 $pipe = new Pipe();
 
-$pipe->next('trim', function ($data, $next, $stop) {
-    return $next(trim($data));
-});
+$pipe->next('trim', fn($data, $next, $stop) => $next(trim($data)));
+$pipe->next('to_upper', fn($data, $next, $stop) => $next(strtoupper($data)));
 
-$pipe->next('to_upper', function ($data, $next, $stop) {
-    return $next(strtoupper($data));
-});
-
-$result = $pipe->run("  hello world  "); // Result: "HELLO WORLD"
+$result = $pipe->run("  hello world  "); // Returns: "HELLO WORLD"
 ```
+
+Each middleware receives the input `$data`, a `$next` callback to pass data to the next middleware, and a `$stop` callback to halt the pipeline.
 
 ---
 
-## Conditional Middleware: `only()`
+### Conditional Execution
 
-Run only specific middleware by name:
+#### `only()`
+
+Run only specific middleware:
 
 ```php
-$pipe->only(['trim']); // Only runs middleware named 'trim'
+$pipe->only(['trim']);
+$result = $pipe->run("  hello  "); // Runs only 'trim', returns: "hello"
 ```
 
----
+#### `without()`
 
-## Conditional Middleware: `without()`
-
-Skip specific middleware by name:
+Skip specific middleware:
 
 ```php
-$pipe->without(['trim']); // Runs all except 'trim'
+$pipe->without(['to_upper']);
+$result = $pipe->run("  hello  "); // Skips 'to_upper', returns: "hello"
 ```
 
 ---
 
-## Monitoring with `watch()`
+### Monitoring with `watch()`
 
-Track each middleware’s input and output:
+Track middleware execution by logging input and output:
 
 ```php
 $pipe->watch(function ($name, $before, $after) {
     printf("| %-12s | %-15s | %-15s |\n", $name, $before, $after);
 });
+
+$result = $pipe->run("  hello  ");
 ```
 
-### Example Output
+**Example Output:**
 
-| Middleware   | Before         | After          |
-|--------------|----------------|----------------|
-| trim         | "  hello "     | "hello"        |
-| to_upper     | "hello"        | "HELLO"        |
+```
+| Middleware   | Before          | After           |
+|--------------|-----------------|-----------------|
+| trim         | "  hello "      | "hello"         |
+| to_upper     | "hello"         | "HELLO"         |
+```
 
 ---
 
-## Exception Handling
+### Exception Handling with `catch()`
 
-Catch errors during pipeline execution:
+Handle exceptions thrown during middleware execution:
 
 ```php
+$pipe->next('error', fn($data, $next, $stop) => throw new Exception("Invalid data"));
+
 $pipe->catch(function (Throwable $e) {
     return "Error: " . $e->getMessage();
 });
+
+$result = $pipe->run("test"); // Returns: "Error: Invalid data"
 ```
 
 ---
 
-## Stopping the Pipeline
+### Flow Control with `stop()`
 
-Stop execution based on a condition:
+Halt the pipeline early based on a condition:
 
 ```php
-$pipe->next('stopper', function ($data, $next, $stop) {
+$pipe->next('check', function ($data, $next, $stop) {
     if ($data === 'STOP') {
-        return $stop('Pipeline stopped!');
+        return $stop('Pipeline stopped.');
     }
     return $next($data);
 });
+
+$result = $pipe->run('STOP'); // Returns: "Pipeline stopped."
 ```
 
 ---
 
-## Get as Closure
+### Pipeline as Closure with `getClosure()`
+
+Convert the pipeline to a reusable closure:
 
 ```php
 $closure = $pipe->getClosure();
-$result = $closure("example input");
+$result = $closure("  hello  "); // Returns: "HELLO"
 ```
 
 ---
 
-## Flush All Middleware
+### Reset Pipeline with `flush()`
+
+Remove all registered middleware:
 
 ```php
-$pipe->flush();
+$pipe->flush(); // Clears all middleware
 ```
 
 ---
 
 ## License
 
-MIT License
+This project is licensed under the [MIT License](LICENSE).
 ```
-
-Let me know if you want to generate a logo, badges, or a `composer.json` for publishing!
