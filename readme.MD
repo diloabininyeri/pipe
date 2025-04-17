@@ -148,7 +148,55 @@ Remove all registered middleware:
 ```php
 $pipe->flush(); // Clears all middleware
 ```
+# Zeus\Pipe\Filter
 
+A simple, chainable filter class using closures.
+
+## 🚀 Example
+
+```php
+use Zeus\Pipe\Filter;
+
+$filter = new Filter();
+
+$filter
+    ->add(fn($value) => is_int($value))      // Must be an integer
+    ->add(fn($value) => $value > 10)        // Greater than 10
+    ->add(fn($value) => $value % 2 === 0); // Must be even
+       
+$data = [5, 12, 15, 20, '30', 25];
+
+$result = $filter->apply($data);
+//or
+$closure=$filter->getClosure();
+array_filter($array,$closure);
+//
+
+print_r($result);
+// Output: [1 => 12, 3 => 20]
+```
+# Zeus\Pipe\Map
+A simple, chainable map class using closures.
+## 🚀 Example
+
+```php
+use Zeus\Pipe\Map;
+$map = new Map();
+$map
+    ->add(fn($value) => $value * 2)   // Multiply by 2
+    ->add(fn($value) => $value + 1);  // Add 1
+         
+$data = [1, 2, 3, 4, 5];
+
+$result = $map->apply($data);
+
+print_r($result);
+// Output: [2, 5, 8, 11, 14]
+
+//or
+$closure=$map->getClosure();
+array_map($closure,$array);
+```
 ---
 
 ## License
