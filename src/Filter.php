@@ -23,9 +23,14 @@ class Filter
     /**
      * @var Closure|null
      */
-    private ?Closure $ddClosure=null;
+    private ?Closure $ddClosure = null;
 
     private array $definedFilters = [];
+
+    /**
+     * @var string $notOperator
+     */
+    private string $notOperator = '!';
 
     /**
      *
@@ -101,7 +106,7 @@ class Filter
             return $this->filterWithRejected($array);
         }
 
-        $filtered= array_filter($array, $this->filter);
+        $filtered = array_filter($array, $this->filter);
         if ($this->ddClosure) {
             call_user_func($this->ddClosure, $filtered);
         }
@@ -207,7 +212,7 @@ class Filter
      */
     public function dd(?Closure $debug): self
     {
-        $this->ddClosure = static function ($value) use($debug){
+        $this->ddClosure = static function ($value) use ($debug) {
             if (function_exists('dd')) {
                 dd($value);
             }
@@ -229,7 +234,7 @@ class Filter
      */
     public function defineFilter(string $name, callable $callback): self
     {
-        $this->definedFilters[$name] =fn()=>$callback($this);
+        $this->definedFilters[$name] = fn() => $callback($this);
         return $this;
     }
 
@@ -239,11 +244,11 @@ class Filter
      * @param bool $withRejected
      * @return array
      */
-    public function applyTo(string $filterName, array $array,bool $withRejected=false):array
+    public function applyTo(string $filterName, array $array, bool $withRejected = false): array
     {
         $not = false;
-        if($filterName[0] === '!'){
-            $filterName = substr($filterName, 1);
+        if ($this->containsNotOperator($filterName)) {
+            $filterName = $this->parseFilterName($filterName);
             $not = true;
         }
         if (!isset($this->definedFilters[$filterName])) {
@@ -281,12 +286,12 @@ class Filter
      * @param bool $withRejected
      * @return array
      */
-    public function multipleApplyTo(array $filterNames, array $array,bool $withRejected=false): array
+    public function multipleApplyTo(array $filterNames, array $array, bool $withRejected = false): array
     {
         $this->reset();
         $result = [];
         foreach ($filterNames as $name) {
-            $result[] = $this->applyTo($name, $array,$withRejected);
+            $result[] = $this->applyTo($name, $array, $withRejected);
         }
         return array_merge(...$result);
     }
@@ -305,6 +310,37 @@ class Filter
         $originalFilter = $this->filter;
         $this->filter = static fn($value) => !$originalFilter($value);
         return $this->apply($array, $withRejected);
+    }
+
+    /**
+     * @param string $operator
+     * @return $this
+     */
+    public function notOperator(string $operator): self
+    {
+        if(trim($operator) === ''){
+            throw new InvalidArgumentException("Operator cannot be empty");
+        }
+        $this->notOperator = $operator;
+        return $this;
+    }
+
+    /**
+     * @param $filterName
+     * @return bool
+     */
+    public function containsNotOperator($filterName): bool
+    {
+        return str_starts_with($filterName, $this->notOperator);
+    }
+
+    /**
+     * @param string $filterName
+     * @return string
+     */
+    public function parseFilterName(string $filterName): string
+    {
+        return substr($filterName, strlen($this->notOperator));
     }
 
 }
