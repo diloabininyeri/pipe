@@ -241,8 +241,16 @@ class Filter
      */
     public function applyTo(string $filterName, array $array,bool $withRejected=false):array
     {
+        $not = false;
+        if($filterName[0] === '!'){
+            $filterName = substr($filterName, 1);
+            $not = true;
+        }
         if (!isset($this->definedFilters[$filterName])) {
             throw new InvalidArgumentException("Filter $filterName not defined");
+        }
+        if ($not) {
+            return $this->not($filterName, $array, $withRejected);
         }
         $this->reset();
         $filter = $this->definedFilters[$filterName];
@@ -278,12 +286,25 @@ class Filter
         $this->reset();
         $result = [];
         foreach ($filterNames as $name) {
-            if (!isset($this->definedFilters[$name])) {
-                throw new InvalidArgumentException("Filter $name not defined");
-            }
             $result[] = $this->applyTo($name, $array,$withRejected);
         }
         return array_merge(...$result);
+    }
+
+    /***
+     * @param string $filterName
+     * @param array $array
+     * @param bool $withRejected
+     * @return array
+     */
+    private function not(string $filterName, array $array, bool $withRejected = false): array
+    {
+        $this->reset();
+        $filter = $this->definedFilters[$filterName];
+        $filter();
+        $originalFilter = $this->filter;
+        $this->filter = static fn($value) => !$originalFilter($value);
+        return $this->apply($array, $withRejected);
     }
 
 }
