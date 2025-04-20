@@ -209,6 +209,7 @@ print_r($filtered);
 print_r($filter->getRejected());
 ```
 **! operator in named**
+<br>
 To do the opposite of a filter, just use !, for example, we use `adult` filter for adult and `!adult` for non-adult.
 ```php
 $filter = new Filter();
@@ -238,6 +239,28 @@ $filter->multipleApplyTo([
 ]);
 
 ```
+**set the not operator**
+
+By default, its value is `!`
+```php
+$filter = new Filter();
+
+
+$filter->notOperator('not_');
+
+
+$filter->defineFilter('even_bigger_than_5', function (Filter $filter) {
+    $filter
+        ->add(static fn($value) => $value > 5);
+});
+
+
+$filter->applyTo('not_even_bigger_than_5', [1, 2, 3, 4, 5, 6, 7, 8, 9]); //not even_bigger_than_5
+
+
+
+```
+
 # Zeus\Pipe\Map
 A simple, chainable map class using closures.
 ## 🚀 Example
