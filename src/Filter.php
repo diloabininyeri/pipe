@@ -3,6 +3,7 @@
 namespace Zeus\Pipe;
 
 use Closure;
+use InvalidArgumentException;
 
 /**
  *
@@ -24,12 +25,14 @@ class Filter
      */
     private ?Closure $ddClosure=null;
 
+    private array $definedFilters = [];
+
     /**
      *
      */
     public function __construct()
     {
-        $this->filter = static fn(...$parameters) => true;
+        $this->resetFilterClosure();
     }
 
     /**
@@ -95,7 +98,7 @@ class Filter
     public function apply(array $array, bool $applyRejected = false): array
     {
         if ($applyRejected) {
-            return $this->filterWithRejected($array, $applyRejected);
+            return $this->filterWithRejected($array);
         }
 
         $filtered= array_filter($array, $this->filter);
@@ -133,8 +136,7 @@ class Filter
     public function without(Closure $callback): self
     {
         return $this->add(function () use ($callback) {
-            $args = func_get_args();
-            return !$callback(...$args);
+            return !$callback(...func_get_args());
         });
     }
 
@@ -220,6 +222,69 @@ class Filter
         return $this;
     }
 
+    /***
+     * @param string $name
+     * @param callable $callback
+     * @return $this
+     */
+    public function defineFilter(string $name, callable $callback): self
+    {
+        $this->definedFilters[$name] =fn()=>$callback($this);
+        return $this;
+    }
+
+    /**
+     * @param string $filterName
+     * @param array $array
+     * @param bool $withRejected
+     * @return array
+     */
+    public function applyTo(string $filterName, array $array,bool $withRejected=false):array
+    {
+        if (!isset($this->definedFilters[$filterName])) {
+            throw new InvalidArgumentException("Filter $filterName not defined");
+        }
+        $this->reset();
+        $filter = $this->definedFilters[$filterName];
+        $filter();
+        return $this->apply($array, $withRejected);
+    }
+
+    /**
+     * @return void
+     */
+    public function resetFilterClosure(): void
+    {
+        $this->filter = static fn(...$parameters) => true;
+    }
+
+    /**
+     * @return void
+     */
+    private function reset(): void
+    {
+        $this->resetFilterClosure();
+        $this->rejected = [];
+    }
+
+    /***
+     * @param array $filterNames
+     * @param array $array
+     * @param bool $withRejected
+     * @return array
+     */
+    public function multipleApplyTo(array $filterNames, array $array,bool $withRejected=false): array
+    {
+        $this->reset();
+        $result = [];
+        foreach ($filterNames as $name) {
+            if (!isset($this->definedFilters[$name])) {
+                throw new InvalidArgumentException("Filter $name not defined");
+            }
+            $result[] = $this->applyTo($name, $array,$withRejected);
+        }
+        return array_merge(...$result);
+    }
 
 }
 

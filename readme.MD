@@ -175,6 +175,39 @@ array_filter($array,$closure);
 print_r($result);
 // Output: [1 => 12, 3 => 20]
 ```
+**or Using a named filter**
+```php
+$filter = new Filter();
+
+
+$filter->defineFilter('even_bigger_than_5', function (Filter $filter) {
+    $filter
+        ->add(static fn($value) => $value % 2 === 0)
+        ->add(static fn($value) => $value > 5);
+});
+
+$filter->defineFilter('odd_and_not_negative', function (Filter $filter) {
+    $filter
+        ->add(static fn($value) => $value % 2 !== 0)
+        ->add(static fn($value) => $value >= 0);
+});
+
+
+$filter->applyTo('even_bigger_than_5', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+$filtered=$filter->multipleApplyTo(
+    [
+        'even_bigger_than_5',
+        'odd_and_not_negative'
+    ],
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    true
+);
+
+print_r($filtered);
+
+print_r($filter->getRejected());
+```
 # Zeus\Pipe\Map
 A simple, chainable map class using closures.
 ## 🚀 Example
