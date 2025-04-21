@@ -407,5 +407,19 @@ class Filter
         return $this->definedFilters[$name] ?? null;
     }
 
+    /**
+     * @param string $filter
+     * @return self
+     */
+    public function define(string $filter):self
+    {
+        //  @todo not yet fully tested
+        $filterInstance= new Filter();
+        $this->definedFilters[$filter]=function ()use($filterInstance){
+            $this->filter = $filterInstance->filter;
+        };
+        return $filterInstance;
+    }
+
 }
 

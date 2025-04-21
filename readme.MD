@@ -291,6 +291,20 @@ $filter->applyTo('not_even_bigger_than_5', [1, 2, 3, 4, 5, 6, 7, 8, 9]); //not e
 
 ```
 
+**short using of the `define` method** 
+
+Attention! This method is experimental, may have side effects and has not yet been fully tested.
+```php
+
+$filter = new Filter();
+$filter
+   ->define('isEven_bigger_than_5')
+   ->add(fn($value) => $value % 2 === 0)
+   ->orAdd(fn($value) => $value % 2 !== 0)
+   ->add(fn($value) => $value > 5);
+
+$filter->applyTo('isEven_bigger_than_5', [1, 2, 3, 4, 5, 6, 7, 8, 9]); //even_bigger_than_5
+```
 # Zeus\Pipe\Map
 A simple, chainable map class using closures.
 ## 🚀 Example
