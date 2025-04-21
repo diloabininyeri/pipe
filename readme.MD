@@ -223,12 +223,12 @@ $filter->defineMultipleFilter([
 
 ]);
 
-$filter->extendedDefinedFilter('isEven', static function (Filter $filter) {
+$filter->extendDefinedFilter('isEven', static function (Filter $filter) {
     $filter
         ->add(fn(int $value)=>$value>5);
 });
 
-$filter->extendedDefinedFilter('isEven', static function (Filter $filter) {
+$filter->extendDefinedFilter('isEven', static function (Filter $filter) {
     $filter
         ->orAdd(fn(int $value)=>$value<10);
 });

@@ -375,7 +375,7 @@ class Filter
      * @param Closure $closure
      * @return $this
      */
-    public function extendedDefinedFilter(string $filterName, Closure $closure): self
+    public function extendDefinedFilter(string $filterName, Closure $closure): self
     {
         if (!isset($this->definedFilters[$filterName])) {
             throw new InvalidArgumentException("Filter $filterName not defined");
