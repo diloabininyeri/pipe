@@ -162,7 +162,8 @@ $filter = new Filter();
 $filter
     ->add(fn($value) => is_int($value))      // Must be an integer
     ->add(fn($value) => $value > 10)        // Greater than 10
-    ->add(fn($value) => $value % 2 === 0); // Must be even
+    ->add(fn($value) => $value % 2 === 0)
+    ->orAdd(fn($value)=>true);//or operator
        
 $data = [5, 12, 15, 20, '30', 25];
 
@@ -207,6 +208,35 @@ $filtered=$filter->multipleApplyTo(
 print_r($filtered);
 
 print_r($filter->getRejected());
+```
+**You can extend defineFilter so you can create more dynamic filters.**
+```php
+
+
+$filter = new Filter();
+
+$filter->defineMultipleFilter([
+    'isEven' => static function (Filter $filter) {
+        $filter
+            ->add(fn(int $value)=>$value % 2 === 0);
+    },
+
+]);
+
+$filter->extendedDefinedFilter('isEven', static function (Filter $filter) {
+    $filter
+        ->add(fn(int $value)=>$value>5);
+});
+
+$filter->extendedDefinedFilter('isEven', static function (Filter $filter) {
+    $filter
+        ->orAdd(fn(int $value)=>$value<10);
+});
+
+
+$applyTo = $filter->applyTo('isEven', range(1,25));
+print_r($applyTo);
+
 ```
 **! operator in named**
 <br>

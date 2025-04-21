@@ -25,6 +25,9 @@ class Filter
      */
     private ?Closure $ddClosure = null;
 
+    /**
+     * @var array
+     */
     private array $definedFilters = [];
 
     /**
@@ -167,6 +170,9 @@ class Filter
         return $this->when(!$condition, $callback);
     }
 
+    /**
+     * @return array
+     */
     public function getRejected(): array
     {
         return $this->rejected;
@@ -192,6 +198,11 @@ class Filter
     }
 
 
+    /**
+     * @param int|Closure $min
+     * @param int|Closure $max
+     * @return $this
+     */
     public function between(int|Closure $min, int|Closure $max): self
     {
         return $this->add(function ($value) use ($min, $max) {
@@ -318,7 +329,7 @@ class Filter
      */
     public function notOperator(string $operator): self
     {
-        if(trim($operator) === ''){
+        if (trim($operator) === '') {
             throw new InvalidArgumentException("Operator cannot be empty");
         }
         $this->notOperator = $operator;
@@ -341,6 +352,59 @@ class Filter
     public function parseFilterName(string $filterName): string
     {
         return substr($filterName, strlen($this->notOperator));
+    }
+
+
+    /**
+     * @param array $array
+     * @return $this
+     */
+    public function defineMultipleFilter(array $array): self
+    {
+        foreach ($array as $name => $filterClosure) {
+            if (!($filterClosure instanceof Closure)) {
+                throw new InvalidArgumentException("Filter closure must be an instance of Closure");
+            }
+            $this->defineFilter($name, fn() => $filterClosure($this));
+        }
+        return $this;
+    }
+
+    /**
+     * @param string $filterName
+     * @param Closure $closure
+     * @return $this
+     */
+    public function extendedDefinedFilter(string $filterName, Closure $closure): self
+    {
+        if (!isset($this->definedFilters[$filterName])) {
+            throw new InvalidArgumentException("Filter $filterName not defined");
+        }
+        $previousFilter = $this->definedFilters[$filterName];
+        $this->definedFilters[$filterName] = function () use ($previousFilter, $closure) {
+            $previousFilter();
+            $closure($this);
+        };
+        return $this;
+    }
+
+    /**
+     * @param string $name
+     * @return bool
+     */
+
+    public function hasDefinedFilter(string $name): bool
+    {
+        return isset($this->definedFilters[$name]);
+    }
+
+    /**
+     * @param string $name
+     * @return Closure|null
+     */
+    public function getDefinedFilter(string $name): ?Closure
+    {
+        return $this->definedFilters[$name] ?? null;
     }
 
 }
