@@ -305,6 +305,29 @@ $filter
 
 $filter->applyTo('isEven_bigger_than_5', [1, 2, 3, 4, 5, 6, 7, 8, 9]); //even_bigger_than_5
 ```
+
+**The transformer**
+
+You can use the transformer method to make changes to the value before the filter. I only gave a trim example in this example.
+```php
+$filter = new Filter();
+
+$filter
+    ->transform(function (mixed $value,Closure $set) {
+        $set(
+            trim($value)
+        );
+    });
+
+
+$apply = $filter->apply([
+    '  hello ',
+    ' hi ',
+]); //['hello', 'hi']
+
+
+print_r($apply);
+```
 # Zeus\Pipe\Map
 A simple, chainable map class using closures.
 ## 🚀 Example
