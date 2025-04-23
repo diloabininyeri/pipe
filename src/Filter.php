@@ -465,7 +465,7 @@ class Filter
      */
     public function using(callable $callback): self
     {
-        return $this->transform(fn($value) => $callback($value));
+        return $this->transform(fn($value,$set) => $set($callback($value)));
     }
 
     /***
