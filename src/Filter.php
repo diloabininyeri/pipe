@@ -36,6 +36,11 @@ class Filter
     private string $notOperator = '!';
 
     /**
+     * @var array $transformers
+     */
+    private array $transformers = [];
+
+    /**
      *
      */
     public function __construct()
@@ -107,6 +112,10 @@ class Filter
     {
         if ($applyRejected) {
             return $this->filterWithRejected($array);
+        }
+
+        if (!empty($this->transformers)) {
+            $array = $this->runTransforms($array);
         }
 
         $filtered = array_filter($array, $this->filter);
@@ -411,14 +420,42 @@ class Filter
      * @param string $filter
      * @return self
      */
-    public function define(string $filter):self
+    public function define(string $filter): self
     {
         //  @todo not yet fully tested
-        $filterInstance= new Filter();
-        $this->definedFilters[$filter]=function ()use($filterInstance){
+        $filterInstance = new self();
+        $this->definedFilters[$filter] = function () use ($filterInstance) {
             $this->filter = $filterInstance->filter;
         };
         return $filterInstance;
+    }
+
+    /***
+     * @param Closure(mixed $value,Closure $set):void $transformer
+     * @return $this
+     */
+    public function transform(Closure $transformer): self
+    {
+        $this->transformers[] = $transformer;
+        return $this;
+    }
+
+    /**
+     * @param array $array
+     * @return array
+     */
+    private function runTransforms(array $array): array
+    {
+        foreach ($array as $key => $value) {
+            foreach ($this->transformers as $transformer) {
+                $transformer($value, function ($setValue) use (&$value) {
+                    $value = $setValue;
+                });
+            }
+
+            $array[$key] = $value;
+        }
+        return $array;
     }
 
 }
