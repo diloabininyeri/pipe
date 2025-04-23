@@ -296,6 +296,7 @@ class Filter
      */
     private function reset(): void
     {
+        $this->transformers = [];
         $this->resetFilterClosure();
         $this->rejected = [];
     }
@@ -458,5 +459,22 @@ class Filter
         return $array;
     }
 
-}
+    /***
+     * @param callable $callback
+     * @return $this
+     */
+    public function using(callable $callback): self
+    {
+        return $this->transform(fn($value) => $callback($value));
+    }
 
+    /***
+     * @param Type $type
+     * @return $this
+     */
+    public function as(Type $type): self
+    {
+        return $this->transform(fn($value, $set) => $set($type->cast($value)));
+    }
+
+}

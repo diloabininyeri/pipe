@@ -328,6 +328,25 @@ $apply = $filter->apply([
 
 print_r($apply);
 ```
+**Type casting**
+
+You can use the type casting method to make changes to the value before the filter.
+```php
+$filter = new Filter();
+
+$filter
+    ->using('trim')
+    ->as(Type::INT);
+
+
+$apply = $filter->apply([
+    ' 85 ',
+    ' 7444 ',
+]);
+
+
+print_r($apply);  //[85,144]
+```
 # Zeus\Pipe\Map
 A simple, chainable map class using closures.
 ## 🚀 Example
